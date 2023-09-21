@@ -4,8 +4,12 @@ import React, { useContext } from "react";
 import { Row, Col } from "reactstrap";
 
 // icons
-import { FaRegStar, FaStar } from "react-icons/fa";
+import { FaEnvelope, FaMapMarkedAlt, FaPhone, FaRegStar, FaStar } from "react-icons/fa";
 import { MdDelete, MdEdit } from "react-icons/md";
+import { AiFillPushpin } from "react-icons/ai";
+
+import { CgProfile } from "react-icons/cg";
+
 
 //TODO: Done add firebase
 import firebase from "firebase/compat/app";
@@ -19,9 +23,11 @@ import { useNavigate } from "react-router-dom";
 
 import { toast } from "react-toastify";
 
-const Contact = ({ contact, contactKey }) => {
+const Contact = ({ contact, contactKey, onDeleteContact }) => {
   //TODO: DONE destructuring dispatch from the context
+
   const { dispatch } = useContext(ContactContext);
+  const context = useContext(ContactContext);
 
   // history hooks to get history
   const history = useNavigate();
@@ -29,36 +35,49 @@ const Contact = ({ contact, contactKey }) => {
   // to delete the contact when delete contact is clicked
   const deleteContact = () => {
     //TODO: DONE create this method from firebase
-    firebase
-      .database()
-      .ref(`/contacts/${contactKey}`)
-      .remove()
-      .then(() => toast("Deleted Successfully...", { type: "success" }))
-      .catch((error) => {
-        console.error(error);
-        toast(error, { type: "error" });
-      });
+
+    if (!context.user?.uid) {
+      history("/signin");
+    } else {
+      firebase
+        .database()
+        .ref(`/contacts/${contactKey}`)
+        .remove()
+        .then(() => {
+          toast("Deleted Successfully...", { type: "success" });
+          // Notify the parent component that a contact has been deleted
+          onDeleteContact();
+        })
+        .catch((error) => {
+          console.error(error);
+          toast(error, { type: "error" });
+        });
+    }
   };
 
   // update the star/important contact ,ie, star it or unstar the single contact
   const updateImpContact = () => {
     //TODO: DONE update (star) contact, use contactKey
-    firebase.database()
-    .ref(`/contacts/${contactKey}`)
-    .update(
-      { 
-        star : !contact.star
-      },
-      err => {
-        console.log(err);
-      })
-    .then("Contact Updated (Star)",{type:"success"})
-     .catch(
-      (error)=>{
-        console.error(error);
-        toast(`Not Update Contact ${error}`,{type:"error"})
-      }
-    );
+    if (!context.user?.uid) {
+      history("/signin");
+    } else {
+      firebase
+        .database()
+        .ref(`/contacts/${contactKey}`)
+        .update(
+          {
+            star: !contact.star,
+          },
+          (err) => {
+            console.log(err);
+          }
+        )
+        .then("Contact Updated (Star)", { type: "success" })
+        .catch((error) => {
+          console.error(error);
+          toast(`Not Update Contact ${error}`, { type: "error" });
+        });
+    }
   };
 
   // when the update icon/ pen ion is clicked
@@ -66,11 +85,12 @@ const Contact = ({ contact, contactKey }) => {
     // dispatching one action to update contact
     //TODO: DONE use dispatch to update
     dispatch({
-      type : CONTACT_TO_UPDATE,
-      payload:contact,
-      key:contactKey
-    })
+      type: CONTACT_TO_UPDATE,
+      payload: contact,
+      key: contactKey,
+    });
     // and pushing to the add contact screen
+
     history("/contact/add");
   };
 
@@ -79,16 +99,16 @@ const Contact = ({ contact, contactKey }) => {
     // setting single contact in state
     //TODO: DONE use dispatch to view single contact
     dispatch({
-      type : SET_SINGLE_CONTACT,
-      payload:contact,
-    })
+      type: SET_SINGLE_CONTACT,
+      payload: contact,
+    });
     // sending...
     history("/contact/view");
   };
 
   return (
     <>
-      <Row>
+      <Row className="table-hover">
         <Col
           md="1"
           className="d-flex justify-content-center align-items-center"
@@ -107,30 +127,37 @@ const Contact = ({ contact, contactKey }) => {
         >
           <img src={contact.picture} alt="" className="img-circle profile" />
         </Col>
+
         <Col md="8" onClick={() => viewSingleContact(contact)}>
-          <div className="text-primary">{contact.name}</div>
+          <div className="text-primary text-decoration-underline"><h5><CgProfile/>&nbsp;{contact.name}</h5>  </div>
 
-          <div className="text-secondary">{contact.phoneNumber}</div>
-          <div className="text-secondary">
-            {/* {FIXME: DONE display contact email}  */}
-            {contact.email}
-          </div>
-
-          <div className="text-info">{contact.address}</div>
+          <div className="text-secondary"> <FaPhone/> &nbsp; {contact.phoneNumber}</div>
+          <div className="text-secondary"><FaEnvelope/> &nbsp; {contact.email}</div>
+          <div className="text-info"> <AiFillPushpin/> &nbsp;{contact.skill}</div>
+          <div className="text-info"> <FaMapMarkedAlt/> &nbsp;{contact.address}</div>
         </Col>
         <Col
           md="1"
           className="d-flex justify-content-center align-items-center"
         >
-          <MdDelete
-            onClick={() => deleteContact()}
-            color="danger"
-            className="text-danger icon"
-          />
-          <MdEdit
-            className="icon text-info ml-2"
-            onClick={() => updateContact()}
-          />
+          {contact.permission === context.user?.uid ? (
+            <MdDelete
+              onClick={() => deleteContact()}
+              color="danger"
+              className="text-danger icon"
+            />
+          ) : (
+            ""
+          )}
+
+          {contact.permission === context.user?.uid ? (
+            <MdEdit
+              className="icon text-info ml-2"
+              onClick={() => updateContact()}
+            />
+          ) : (
+            ""
+          )}
         </Col>
       </Row>
     </>

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 
 import {
   Container,
@@ -7,17 +7,22 @@ import {
   Card,
   CardBody,
   CardTitle,
-  CardSubtitle
+  CardSubtitle,
 } from "reactstrap";
 import { FaEnvelope, FaMapMarkerAlt, FaPhone } from "react-icons/fa";
+import { AiFillPushpin } from "react-icons/ai";
+
 import { ContactContext } from "../context/Context";
 
 const ViewContact = () => {
   const { state } = useContext(ContactContext);
   // destructuring contact from the state
-  const {contact} = state;
+  const { contact } = state;
+
   // and rendering it in state
   //FIXME: destructure contact from state
+
+  useEffect(() => {});
 
   return (
     <Container>
@@ -29,31 +34,49 @@ const ViewContact = () => {
                 height="150"
                 width="150"
                 className="cardImg profile border-danger"
-                src={contact?.picture} alt=""
+                src={contact?.picture}
+                alt=""
               />
+
               <CardTitle className="text-primary mt-3">
                 <h1>{contact?.name}</h1>
               </CardTitle>
-              <CardSubtitle>
+              <CardSubtitle className="mt-3">
                 <h3>
-                  <FaPhone className="mr-2" />
+                  <FaPhone className="mr-2" /> &nbsp;
                   {contact?.phoneNumber}
                 </h3>
               </CardSubtitle>
+
               <a
-                className="btn btn-primary btn-block"
+                className="btn btn-primary btn-block mt-3"
                 target="_blank"
                 rel="noreferrer"
                 href={`mailto:{contact?.email}`}
               >
-                <FaEnvelope className="icon mr-2" />
-                {contact?.email}
-              </a>
 
-              <a className="btn btn-primary btn-block" target="_blank" alt="" href="sss">
-                <FaMapMarkerAlt className="icon mr-2" />
-                {contact?.address}
+                <FaEnvelope className="icon mr-2" />&nbsp;
+
+                {contact?.email}
+
               </a>
+<br/>
+              <div
+                className="btn btn-primary btn-block mt-3"
+              >
+                <AiFillPushpin className="icon mr-3" />    &nbsp;
+                {contact?.skill}
+              </div>
+
+              <div
+                className="btn btn-primary btn-block mt-3"
+              
+                style={{ marginLeft: '25px' }}
+              >
+                <FaMapMarkerAlt className="icon mr-3" />&nbsp;
+                {contact?.address}
+              </div>
+
             </CardBody>
           </Card>
         </Col>
